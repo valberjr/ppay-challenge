@@ -1,15 +1,26 @@
 package com.example.ppay.dto.mapper;
 
 import com.example.ppay.dto.AccountDto;
+import com.example.ppay.dto.AccountResponseDto;
 import com.example.ppay.model.Account;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class AccountMapper {
+
     private final UserMapper userMapper;
 
-    public AccountMapper(UserMapper userMapper) {
-        this.userMapper = userMapper;
+    public AccountResponseDto toResponseDto(AccountDto accountDto) {
+        if (accountDto == null) {
+            return null;
+        }
+        return new AccountResponseDto(
+                accountDto.number(),
+                accountDto.balance(),
+                accountDto.user().fullName()
+        );
     }
 
     public AccountDto toDto(Account account) {
