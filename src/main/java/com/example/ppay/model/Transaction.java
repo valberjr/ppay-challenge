@@ -2,10 +2,7 @@ package com.example.ppay.model;
 
 import com.example.ppay.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Transaction {
 
     @Id
@@ -35,4 +33,13 @@ public class Transaction {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public static Transaction createTransaction(User receiver, Account account) {
+        return Transaction.builder()
+                .user(receiver)
+                .account(account)
+                .transactionType(TransactionType.DEPOSIT)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
 }

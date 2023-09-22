@@ -2,7 +2,7 @@ package com.example.ppay.service;
 
 import com.example.ppay.dto.UserDto;
 import com.example.ppay.dto.mapper.UserMapper;
-import com.example.ppay.model.User;
+import com.example.ppay.enums.UserType;
 import com.example.ppay.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
@@ -31,7 +31,13 @@ public class UserService {
     }
 
     public UserDto save(UserDto userDto) throws ConstraintViolationException {
-        User savedUser = repository.save(mapper.toEntity(userDto));
+        var savedUser = repository.save(mapper.toEntity(userDto));
         return mapper.toDto(savedUser);
+    }
+
+    public void isMerchant(UserType userType) throws Exception {
+        if (userType == UserType.MERCHANT) {
+            throw new Exception("Operation not allowed for user " + userType);
+        }
     }
 }
