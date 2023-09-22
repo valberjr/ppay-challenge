@@ -4,6 +4,8 @@ import com.example.ppay.dto.TransactionDto;
 import com.example.ppay.dto.mapper.AccountMapper;
 import com.example.ppay.dto.mapper.TransactionDtoResponse;
 import com.example.ppay.dto.mapper.UserMapper;
+import com.example.ppay.exception.BalanceException;
+import com.example.ppay.exception.OperationNotAllowedException;
 import com.example.ppay.model.Transaction;
 import com.example.ppay.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,8 @@ public class TransactionService {
     private final TransactionRepository repository;
 
     @Transactional
-    public TransactionDtoResponse sendMoney(TransactionDto transactionDto) throws Exception {
+    public TransactionDtoResponse sendMoney(TransactionDto transactionDto)
+            throws OperationNotAllowedException, BalanceException {
         // get sender
         var sender = userMapper.toEntity(userService.findById(transactionDto.senderId()));
         // get receiver
@@ -47,6 +50,6 @@ public class TransactionService {
         // save transaction
         repository.save(transaction);
 
-        return new TransactionDtoResponse("The transfer was successfully completed");
+        return new TransactionDtoResponse("Transfer successfully completed");
     }
 }

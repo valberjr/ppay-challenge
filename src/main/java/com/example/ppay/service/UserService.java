@@ -3,9 +3,10 @@ package com.example.ppay.service;
 import com.example.ppay.dto.UserDto;
 import com.example.ppay.dto.mapper.UserMapper;
 import com.example.ppay.enums.UserType;
+import com.example.ppay.exception.OperationNotAllowedException;
 import com.example.ppay.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,17 +28,17 @@ public class UserService {
     public UserDto findById(String id) {
         return repository.findById(id)
                 .map(mapper::toDto)
-                .orElse(null);
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
-    public UserDto save(UserDto userDto) throws ConstraintViolationException {
+    public UserDto save(UserDto userDto) {
         var savedUser = repository.save(mapper.toEntity(userDto));
         return mapper.toDto(savedUser);
     }
 
-    public void isMerchant(UserType userType) throws Exception {
+    public void isMerchant(UserType userType) throws OperationNotAllowedException {
         if (userType == UserType.MERCHANT) {
-            throw new Exception("Operation not allowed for user " + userType);
+            throw new OperationNotAllowedException("Operation not allowed for user");
         }
     }
 }

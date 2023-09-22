@@ -3,14 +3,15 @@ package com.example.ppay.service;
 import com.example.ppay.dto.AccountDto;
 import com.example.ppay.dto.AccountResponseDto;
 import com.example.ppay.dto.mapper.AccountMapper;
+import com.example.ppay.exception.BalanceException;
 import com.example.ppay.repository.AccountRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +28,10 @@ public class AccountService {
                 .toList();
     }
 
-    public AccountDto findByUserId(String userId) throws Exception {
-        Optional<AccountDto> accountOpt = accountRepository.findByUserId(userId)
-                .map(accountMapper::toDto);
-        if (accountOpt.isEmpty()) {
-            throw new Exception("User account " + userId + " not found");
-        }
-        return accountOpt.get();
+    public AccountDto findByUserId(String userId) {
+        return accountRepository.findByUserId(userId)
+                .map(accountMapper::toDto)
+                .orElseThrow(() -> new EntityNotFoundException("User account not found"));
     }
 
     @Transactional
@@ -47,10 +45,10 @@ public class AccountService {
         accountRepository.save(senderAccount);
     }
 
-    public void hasEnoughBalance(AccountDto accountDto) throws Exception {
-        var hasBalance = accountDto.balance().compareTo(BigDecimal.ZERO) <= 0;
-        if (hasBalance) {
-            throw new Exception("Not enough balance");
+    public void hasEnoughBalance(AccountDto accountDto) throws BalanceException {
+        var noBalance = accountDto.balance().compareTo(BigDecimal.ZERO) <= 0;
+        if (noBalance) {
+            throw new BalanceException("Not enough balance");
         }
     }
 }
