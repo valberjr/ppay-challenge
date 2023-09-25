@@ -31,13 +31,23 @@ class UserServiceTest {
     UserRepository repository;
     @Mock
     UserMapper mapper;
-
     @InjectMocks
-    private UserService service;
+    UserService service;
+
+    UserDto userDto;
+    User user;
 
     @BeforeEach
     public void setup() {
-
+        userDto = new UserDto("3263ee01", "Jess", "31813722005", "jess@me.com", "password", String.valueOf(UserType.ENDUSER));
+        user = User.builder()
+                .id("3263ee01")
+                .fullName("Jess")
+                .cpf("31813722005")
+                .email("jess@me.com")
+                .password("password")
+                .userType(UserType.ENDUSER)
+                .build();
     }
 
     @DisplayName("Should return an empty list when no users exist")
@@ -45,10 +55,8 @@ class UserServiceTest {
     void shouldReturnEmptyListWhenNoUsersExist() {
         // given
         given(repository.findAll()).willReturn(Collections.emptyList());
-
         // when
         var users = service.findAll();
-
         // then
         assertThat(users).isEmpty();
     }
@@ -58,10 +66,8 @@ class UserServiceTest {
     void shouldThrowEntityNotFoundExceptionWhenUserWithGivenIdDoesNotExist() {
         // given
         String userId = "3263ee01-4669-49ef-8bae-b830cf7918f5";
-
         // when
         when(repository.findById(userId)).thenReturn(Optional.empty());
-
         // then
         assertThrows(EntityNotFoundException.class, () -> service.findById(userId));
     }
@@ -69,23 +75,11 @@ class UserServiceTest {
     @DisplayName("Should save a user and return the saved user")
     @Test
     void shouldSaveUserAndReturnSavedUser() {
-        // given
-        UserDto userDto = new UserDto("3263ee01", "Jess", "31813722005", "jess@me.com", "password", String.valueOf(UserType.ENDUSER));
-        User user = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.ENDUSER)
-                .build();
         // when
         when(repository.save(any(User.class))).thenReturn(user);
         when(mapper.toEntity(userDto)).thenReturn(user);
         when(mapper.toDto(user)).thenReturn(userDto);
-
         UserDto result = service.save(userDto);
-
         // then
         assertEquals(userDto, result);
         verify(repository, times(1)).save(any(User.class));
@@ -93,22 +87,20 @@ class UserServiceTest {
         verify(mapper, times(1)).toDto(user);
     }
 
-    @DisplayName("Test for checking if user type is merchant")
+    @DisplayName("Should throw OperationNotAllowedException when user type is merchant")
     @Test
     void shouldThrowOperationNotAllowedExceptionWhenUserTypeIsMerchant() {
         // given
         UserType userType = UserType.MERCHANT;
-
         // when and then
         assertThrows(OperationNotAllowedException.class, () -> service.isMerchant(userType));
     }
 
-    @DisplayName("Test for checking if user type is not merchant")
+    @DisplayName("Should not throw OperationNotAllowedException when user type is not merchant")
     @Test
     void shouldNotThrowOperationNotAllowedExceptionWhenUserTypeIsNotMerchant() {
         // given
         UserType userType = UserType.ENDUSER;
-
         // when and then
         assertDoesNotThrow(() -> service.isMerchant(userType));
     }

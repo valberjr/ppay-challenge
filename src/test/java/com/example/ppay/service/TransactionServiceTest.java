@@ -13,6 +13,7 @@ import com.example.ppay.model.Account;
 import com.example.ppay.model.Transaction;
 import com.example.ppay.model.User;
 import com.example.ppay.repository.TransactionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,71 +43,46 @@ class TransactionServiceTest {
     @InjectMocks
     TransactionService transactionService;
 
+    TransactionDto transactionDto;
+    User sender;
+    UserDto senderDto;
+    User receiver;
+    UserDto receiverDto;
+    AccountDto senderAccountDto;
+    AccountDto receiverAccountDto;
+    Account receiverAccount;
+    Transaction transaction;
+
+    @BeforeEach
+    public void setup() {
+        transactionDto = createTransactionDto();
+        sender = createSender();
+        senderDto = createSenderDto();
+        receiver = createReceiver();
+        receiverDto = createReceiverDto();
+        senderAccountDto = createSenderAccountDto("1253ff02", 1);
+        receiverAccountDto = createSenderAccountDto("589gf03", 2);
+        receiverAccount = createReceiverAccount();
+        transaction = createTransaction();
+    }
+
     @DisplayName("Should throw OperationNotAllowedException when user type is merchant")
     @Test
     void shouldThrowOperationNotAllowedExceptionWhenUserTypeIsMerchant() throws OperationNotAllowedException {
-        TransactionDto transactionDto = new TransactionDto("1", "2", new BigDecimal("100"));
-
-        User sender = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.MERCHANT)
-                .build();
-
-        UserDto senderDto = new UserDto("3263ee01", "Jess", "31813722005", "jess@me.com", "password", String.valueOf(UserType.ENDUSER));
-
-        User receiver = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.ENDUSER)
-                .build();
-
-        UserDto receiverDto = new UserDto("1543ff02", "Vih", "76513722658", "vih@me.com", "password", String.valueOf(UserType.ENDUSER));
-
+        // when
         when(userService.findById(transactionDto.senderId())).thenReturn(senderDto);
         when(userMapper.toEntity(senderDto)).thenReturn(sender);
         when(userService.findById(transactionDto.receiverId())).thenReturn(receiverDto);
         when(userMapper.toEntity(receiverDto)).thenReturn(receiver);
         doThrow(OperationNotAllowedException.class).when(userService).isMerchant(sender.getUserType());
-
+        // then
         assertThrows(OperationNotAllowedException.class, () -> transactionService.sendMoney(transactionDto));
     }
 
     @DisplayName("Should throws BalanceException if has no balance")
     @Test
     void shouldThrowBalanceExceptionIfHasNoBalance() throws OperationNotAllowedException, BalanceException {
-        TransactionDto transactionDto = new TransactionDto("1", "2", new BigDecimal("100"));
-
-        User sender = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.ENDUSER)
-                .build();
-
-        UserDto senderDto = new UserDto("3263ee01", "Jess", "31813722005", "jess@me.com", "password", String.valueOf(UserType.ENDUSER));
-
-        User receiver = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.ENDUSER)
-                .build();
-
-        UserDto receiverDto = new UserDto("1543ff02", "Vih", "76513722658", "vih@me.com", "password", String.valueOf(UserType.ENDUSER));
-
-        AccountDto senderAccountDto = new AccountDto("1253ff02", 1, new BigDecimal("100"), null);
-
+        // when
         when(userService.findById(transactionDto.senderId())).thenReturn(senderDto);
         when(userMapper.toEntity(senderDto)).thenReturn(sender);
         when(userService.findById(transactionDto.receiverId())).thenReturn(receiverDto);
@@ -114,49 +90,14 @@ class TransactionServiceTest {
         doNothing().when(userService).isMerchant(sender.getUserType());
         when(accountService.findByUserId(transactionDto.senderId())).thenReturn(senderAccountDto);
         doThrow(BalanceException.class).when(accountService).hasEnoughBalance(senderAccountDto);
-
+        // then
         assertThrows(BalanceException.class, () -> transactionService.sendMoney(transactionDto));
     }
 
     @DisplayName("Should send money")
     @Test
     void shouldSendMoney() throws OperationNotAllowedException, BalanceException {
-        TransactionDto transactionDto = new TransactionDto("1", "2", new BigDecimal("100"));
-
-        User sender = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.ENDUSER)
-                .build();
-
-        UserDto senderDto = new UserDto("3263ee01", "Jess", "31813722005", "jess@me.com", "password", String.valueOf(UserType.ENDUSER));
-
-        User receiver = User.builder()
-                .id("3263ee01")
-                .fullName("Jess")
-                .cpf("31813722005")
-                .email("jess@me.com")
-                .password("password")
-                .userType(UserType.ENDUSER)
-                .build();
-
-        UserDto receiverDto = new UserDto("1543ff02", "Vih", "76513722658", "vih@me.com", "password", String.valueOf(UserType.ENDUSER));
-
-        AccountDto senderAccountDto = new AccountDto("1253ff02", 1, new BigDecimal("100"), null);
-        AccountDto receiverAccountDto = new AccountDto("589gf03", 2, new BigDecimal("100"), null);
-        Account receiverAccount = Account.builder()
-                .id("1253ff02")
-                .number(1)
-                .balance(new BigDecimal("100"))
-                .build();
-
-        Transaction transaction = Transaction.builder()
-                .id("865gb04")
-                .build();
-
+        // twhen
         when(userService.findById(transactionDto.senderId())).thenReturn(senderDto);
         when(userMapper.toEntity(senderDto)).thenReturn(sender);
         when(userService.findById(transactionDto.receiverId())).thenReturn(receiverDto);
@@ -169,10 +110,73 @@ class TransactionServiceTest {
         doNothing().when(accountService).updateAccountBalance(receiverAccountDto, transactionDto.amount(), false);
         when(accountMapper.toEntity(receiverAccountDto)).thenReturn(receiverAccount);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
-
         TransactionDtoResponse response = transactionService.sendMoney(transactionDto);
-
+        // then
         verify(transactionRepository, times(1)).save(any(Transaction.class));
         assertEquals("Transfer successfully completed", response.message());
+    }
+
+    private static Transaction createTransaction() {
+        return Transaction.builder()
+                .id("865gb04")
+                .build();
+    }
+
+    private static Account createReceiverAccount() {
+        return Account.builder()
+                .id("1253ff02")
+                .number(1)
+                .balance(new BigDecimal("100"))
+                .build();
+    }
+
+    private static AccountDto createSenderAccountDto(String id, int number) {
+        return new AccountDto(id, number, new BigDecimal("100"), null);
+    }
+
+    private static UserDto createReceiverDto() {
+        return new UserDto(
+                "1543ff02",
+                "Vih",
+                "76513722658",
+                "vih@me.com",
+                "password", String.valueOf(UserType.ENDUSER)
+        );
+    }
+
+    private static User createReceiver() {
+        return User.builder()
+                .id("3263ee01")
+                .fullName("Jess")
+                .cpf("31813722005")
+                .email("jess@me.com")
+                .password("password")
+                .userType(UserType.ENDUSER)
+                .build();
+    }
+
+    private static UserDto createSenderDto() {
+        return new UserDto(
+                "3263ee01",
+                "Jess",
+                "31813722005",
+                "jess@me.com",
+                "password", String.valueOf(UserType.ENDUSER)
+        );
+    }
+
+    private static User createSender() {
+        return User.builder()
+                .id("3263ee01")
+                .fullName("Jess")
+                .cpf("31813722005")
+                .email("jess@me.com")
+                .password("password")
+                .userType(UserType.MERCHANT)
+                .build();
+    }
+
+    private static TransactionDto createTransactionDto() {
+        return new TransactionDto("1", "2", new BigDecimal("100"));
     }
 }

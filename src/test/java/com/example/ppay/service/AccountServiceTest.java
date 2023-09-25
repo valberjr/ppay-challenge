@@ -34,70 +34,68 @@ class AccountServiceTest {
     @InjectMocks
     AccountService service;
 
+    AccountDto accountDto;
+    Account account;
+
     @BeforeEach
     public void setup() {
-
+        accountDto = new AccountDto("1253ff02", 1, BigDecimal.ZERO, null);
+        account = Account.builder()
+                .id("1253ff02")
+                .number(1)
+                .balance(new BigDecimal("100"))
+                .build();
     }
 
     @DisplayName("Should return an empty list when no accounts exist")
     @Test
     void shouldReturnEmptyListWhenNoAccountsExist() {
+        // given
         given(repository.findAll()).willReturn(Collections.emptyList());
+        // then
         assertThat(service.findAll()).isEmpty();
     }
 
     @DisplayName("Should throw EntityNotFoundException when user with given id does not exist")
     @Test
     void shouldThrowEntityNotFoundExceptionWhenUserWithGivenIdDoesNotExist() {
+        // given
         String userId = "3263ee01-4669-49ef-8bae-b830cf7918f5";
+        // when
         when(repository.findByUserId(userId)).thenReturn(Optional.empty());
+        // then
         assertThrows(EntityNotFoundException.class, () -> service.findByUserId(userId));
     }
 
     @DisplayName("Should update an account balance subtracting the amount")
     @Test
     void shouldUpdateAccountBalanceSubtractingAmount() {
-        AccountDto accountDto = new AccountDto("1253ff02", 1, BigDecimal.ZERO, null);
-        Account account = Account.builder()
-                .id("1253ff02")
-                .number(1)
-                .balance(new BigDecimal("100"))
-                .build();
-
+        // given
         boolean isSender = true;
-
+        // when
         when(mapper.toEntity(accountDto)).thenReturn(account);
         when(repository.save(any())).thenReturn(account);
-
         service.updateAccountBalance(accountDto, new BigDecimal("50"), isSender);
-
+        // then
         assertThat(account.getBalance()).isEqualTo(new BigDecimal("50"));
     }
 
     @DisplayName("Should update an account balance adding the amount")
     @Test
     void shouldUpdateAccountBalanceAddingAmount() {
-        AccountDto accountDto = new AccountDto("1253ff02", 1, BigDecimal.ZERO, null);
-        Account account = Account.builder()
-                .id("1253ff02")
-                .number(1)
-                .balance(new BigDecimal("100"))
-                .build();
-
+        // given
         boolean isSender = false;
-
+        // when
         when(mapper.toEntity(accountDto)).thenReturn(account);
         when(repository.save(any())).thenReturn(account);
-
         service.updateAccountBalance(accountDto, new BigDecimal("50"), isSender);
-
+        // then
         assertThat(account.getBalance()).isEqualTo(new BigDecimal("150"));
     }
 
-    @DisplayName("Should throws BalanceException if has no balance")
+    @DisplayName("Should throw BalanceException if has no balance")
     @Test
-    void shouldThrowsBalanceExceptionIfHasNoBalance() {
-        AccountDto accountDto = new AccountDto("1253ff02", 1, BigDecimal.ZERO, null);
+    void shouldThrowBalanceExceptionIfHasNoBalance() {
         assertThrows(BalanceException.class, () -> service.hasEnoughBalance(accountDto));
     }
 
