@@ -19,7 +19,7 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping
-    public ResponseEntity<List<AccountResponseDto>> findByUserId() {
+    public ResponseEntity<List<AccountResponseDto>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(accountService.findAll());
     }
