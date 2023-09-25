@@ -3,10 +3,7 @@ package com.example.ppay.model;
 
 import com.example.ppay.enums.UserType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -18,6 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class User {
 
     @Id
@@ -32,6 +30,7 @@ public class User {
 
     @Column(unique = true)
     private String email;
+
     private String password;
 
     @Column(name = "user_type")
