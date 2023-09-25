@@ -2,6 +2,8 @@ package com.example.ppay.controller;
 
 import com.example.ppay.dto.TransactionDto;
 import com.example.ppay.dto.mapper.TransactionDtoResponse;
+import com.example.ppay.exception.BalanceException;
+import com.example.ppay.exception.OperationNotAllowedException;
 import com.example.ppay.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,8 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<TransactionDtoResponse> sendMoney(@RequestBody TransactionDto transaction) throws Exception {
+    public ResponseEntity<TransactionDtoResponse> sendMoney(@RequestBody TransactionDto transaction)
+            throws BalanceException, OperationNotAllowedException {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(transactionService.sendMoney(transaction));
